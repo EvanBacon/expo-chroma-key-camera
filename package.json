@@ -1,0 +1,17 @@
+{
+  "name": "ar-image-test",
+  "version": "0.0.0",
+  "description": "No description",
+  "author": null,
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "dependencies": {
+    "expo": "^33.0.0",
+    "expo-graphics": "1.1.0",
+    "expo-three": "^4.0.3",
+    "prop-types": "*",
+    "react": "16.8.3",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-33.0.0.tar.gz",
+    "three": "0.106.2"
+  }
+}
