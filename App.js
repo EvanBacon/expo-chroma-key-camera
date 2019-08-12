@@ -6,7 +6,9 @@ import { AR, loadTextureAsync, Renderer, THREE } from 'expo-three';
 import React, { useEffect, useState } from 'react';
 import {
   Image,
+  FlatList,
   StyleSheet,
+  LayoutAnimation,
   Slider,
   Text,
   TouchableOpacity,
@@ -30,7 +32,7 @@ let chroma;
 
 export default function App() {
   const [image, setImage] = useState(asset);
-  const [color, setColor] = useState('#ff0000');
+  const [color, setColor] = useState(Colors[0]);
   const [desaturation, setDesaturation] = useState(1.0);
 
   const scene = new Scene();
@@ -49,7 +51,7 @@ export default function App() {
 
   useEffect(() => {
     if (chroma) {
-      chroma.uniforms.color.value = new Color(color);
+      chroma.uniforms.color.value = new Color(color.color);
     }
   }, [color]);
 
@@ -78,7 +80,7 @@ export default function App() {
     const texture = new AR.BackgroundTexture(renderer);
     chroma = new ChromaKeyMaterial({
       texture,
-      color: new Color(color),
+      color: new Color(color.color),
       inverse: true,
     });
     desaturate = new SaturateMaterial({
@@ -133,21 +135,30 @@ export default function App() {
           }}
         />
       )}
-
-      <Slider
+      <View
         style={{
           position: 'absolute',
           bottom: 8 + Constants.statusBarHeight,
           right: 16,
           left: 16,
+          alignItems: 'stretch',
         }}
-        minimumValue={0}
-        maximumValue={1}
-        minimumTrackTintColor="#FFFFFF"
-        maximumTrackTintColor={color}
-        value={desaturation}
-        onValueChange={value => setDesaturation(value)}
-      />
+      >
+        <Slider
+          style={{
+            marginBottom: 6,
+          }}
+          step={0.1}
+          minimumValue={0}
+          maximumValue={1}
+          minimumTrackTintColor="#FFFFFF"
+          maximumTrackTintColor={color}
+          value={desaturation}
+          onValueChange={value => setDesaturation(value)}
+        />
+
+        <Carousel selected={color} onSelectColor={color => setColor(color)} />
+      </View>
     </View>
   );
 }
@@ -166,6 +177,123 @@ function ImageButton({ image, onImage }) {
       </TouchableOpacity>
     </View>
   );
+}
+
+const Colors = [
+  {
+    name: 'Red',
+    code: 5,
+    color: '#C91A09',
+  },
+  {
+    name: 'Blue',
+    code: 7,
+    color: '#0055BF',
+  },
+  {
+    name: 'Bright Pink',
+    code: 104,
+    color: '#FFBBFF',
+  },
+  {
+    name: 'Green',
+    code: 6,
+    color: '#00642e',
+  },
+  {
+    name: 'Lime',
+    code: 34,
+    color: '#A6CA55',
+  },
+  {
+    name: 'Dark Red',
+    code: 59,
+    color: '#6A0E15',
+  },
+  {
+    name: 'Yellow',
+    code: 3,
+    color: '#F2CD37',
+  },
+  {
+    name: 'Dark Purple',
+    code: 89,
+    color: '#5F2683',
+  },
+  {
+    name: 'Orange',
+    code: 4,
+    color: '#FE8A18',
+  },
+];
+
+function Carousel({ selected, data = Colors, onSelectColor }) {
+  return (
+    <FlatList
+      style={{ flex: 1, width: '100%', overflow: 'visible' }}
+      horizontal
+      data={data}
+      showsHorizontalScrollIndicator={false}
+      keyExtractor={({ code }) => `-${code}`}
+      renderItem={({ item, index }) => (
+        <CarouselItem
+          selected={item.code === selected.code}
+          onPress={() => onSelectColor(item)}
+          {...item}
+        />
+      )}
+    />
+  );
+}
+
+function CarouselItem({ selected, name, code, color, onPress }) {
+  const SIZE = 56;
+  LayoutAnimation.easeInEaseOut();
+
+  return (
+    <TouchableOpacity onPress={onPress} style={{ alignItems: 'stretch' }}>
+      <Image
+        style={{
+          marginHorizontal: 8,
+          width: SIZE,
+          height: SIZE,
+          backgroundColor: 'white',
+          resizeMode: 'contain',
+          transform: [{ scale: selected ? 1.1 : 1 }],
+        }}
+        source={{
+          uri: getBrickImage({ name: '3005', color: code, resolution: 1 }),
+        }}
+      />
+      <Text
+        style={{
+          color: color,
+          fontWeight: 'bold',
+          textAlign: 'center',
+          marginTop: 6,
+        }}
+      >
+        {name}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+//       source={{uri: getBrickImage({ name: '3005', color: '5', resolution: 1 }) }}
+
+//{uri: getBrickImage({ name: '3001', color: '2', resolution: 1 }) }
+
+function getBrickImage(props) {
+  const res = props.res || 1;
+  const color = props.color || 1;
+
+  if (!props.name || props.name === '') {
+    throw new Error(
+      'Error: getBrickImage: Please use a valid brick name: ' + props.name,
+    );
+  }
+  return `http://img.bricklink.com/ItemImage/PT/${color}/${
+    props.name
+  }.t${res}.png`;
 }
 
 const styles = StyleSheet.create({
